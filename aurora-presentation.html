@@ -1,0 +1,594 @@
+<title>Aurora Platform</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
+
+<style>
+/* === TOKENS — Vodafone × Aurora DS ===
+   Layout: full-screen horizontal slide deck */
+:root {
+  --red: #e60000;
+  --red-bg: rgba(230,0,0,.07);
+  --ink: #25282b;
+  --ink-soft: #3d4145;
+  --body: #5a5f63;
+  --muted: #9fa3a7;
+  --canvas: #ffffff;
+  --soft: #f4f4f5;
+  --mid: #eceef0;
+  --border: #dddfe2;
+  --on-dark: #ffffff;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --red: #ff2020; --red-bg: rgba(255,32,32,.09);
+    --ink: #f0f2f4; --ink-soft: #cdd0d3; --body: #9fa3a7; --muted: #5a5f63;
+    --canvas: #111416; --soft: #191c1f; --mid: #22262a; --border: #2e3235;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --red: #ff2020; --red-bg: rgba(255,32,32,.09);
+  --ink: #f0f2f4; --ink-soft: #cdd0d3; --body: #9fa3a7; --muted: #5a5f63;
+  --canvas: #111416; --soft: #191c1f; --mid: #22262a; --border: #2e3235;
+  color-scheme: dark;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:var(--canvas);color:var(--ink);overflow:hidden}
+
+/* ── Progress ── */
+.pg{position:fixed;top:0;left:0;right:0;height:3px;background:var(--border);z-index:200}
+.pg-fill{height:100%;background:var(--red);transition:width .4s ease}
+
+/* ── Deck ── */
+.deck{height:100%;position:relative;overflow:hidden}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transform:translateX(56px);transition:opacity .32s ease,transform .32s ease}
+.slide.active{opacity:1;pointer-events:all;transform:translateX(0)}
+.slide.out{opacity:0;transform:translateX(-56px);transition:opacity .28s ease,transform .28s ease}
+
+/* ── Inner wrapper ── */
+.si{flex:1;display:flex;flex-direction:column;overflow-y:auto;
+  padding-left:max(56px,env(safe-area-inset-left,0px));
+  padding-right:max(56px,env(safe-area-inset-right,0px));
+  padding-block:56px 88px}
+
+/* ── Nav ── */
+.nav{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;z-index:200;
+  background:var(--canvas);border:1px solid var(--border);border-radius:40px;padding:7px 16px;
+  box-shadow:0 2px 16px rgba(0,0,0,.08)}
+.nb{background:none;border:none;cursor:pointer;color:var(--ink);width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;transition:background .15s}
+.nb:hover{background:var(--soft)}
+.nb:disabled{opacity:.25;cursor:default}
+.nc{font-size:12px;font-weight:700;color:var(--muted);min-width:42px;text-align:center;font-variant-numeric:tabular-nums}
+.dots{display:flex;gap:5px;align-items:center}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--border);cursor:pointer;transition:background .2s,transform .2s}
+.dot.on{background:var(--red);transform:scale(1.5)}
+
+/* ── Common type ── */
+.eyebrow{font-size:10.5px;font-weight:800;letter-spacing:2.8px;text-transform:uppercase;color:var(--red);margin-bottom:10px}
+.h1{font-size:clamp(28px,4.2vw,52px);font-weight:800;line-height:1.08;text-wrap:balance;color:var(--ink)}
+.sub{font-size:15px;color:var(--body);line-height:1.55;margin-top:8px;margin-bottom:32px}
+.rule{width:44px;height:4px;background:var(--red);margin-bottom:28px}
+
+/* ── Cover ── */
+.s-cover{background:var(--ink)}
+.s-cover .si{justify-content:center;
+  padding-left:max(64px,env(safe-area-inset-left,0px));
+  padding-right:max(64px,env(safe-area-inset-right,0px))}
+.cv-eye{font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--red);margin-bottom:20px}
+.cv-bar{width:64px;height:5px;background:var(--red);margin-bottom:32px}
+.cv-h{font-size:clamp(44px,7vw,88px);font-weight:900;line-height:1.02;color:#fff;text-wrap:balance;max-width:760px;margin-bottom:20px}
+.cv-sub{font-size:clamp(16px,1.8vw,21px);font-weight:300;color:rgba(255,255,255,.58);max-width:540px;line-height:1.55;margin-bottom:48px}
+.cv-tags{display:flex;gap:24px;flex-wrap:wrap}
+.cv-tag{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.35)}
+
+/* ── Problem grid ── */
+.pg4{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.pc{background:var(--soft);border-radius:8px;padding:22px;border-left:3px solid var(--red)}
+.pc-t{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:7px}
+.pc-b{font-size:13px;color:var(--body);line-height:1.5}
+
+/* ── Vision ── */
+.vis-q{font-size:clamp(17px,2.4vw,26px);font-weight:300;line-height:1.6;color:var(--ink-soft);max-width:680px;margin-bottom:36px}
+.vis-q strong{font-weight:700;color:var(--ink)}
+.pillars{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.pill{background:var(--soft);border-radius:8px;padding:18px 14px;text-align:center}
+.pill-i{font-size:22px;margin-bottom:8px}
+.pill-l{font-size:13px;font-weight:600;color:var(--ink)}
+
+/* ── Frentes ── */
+.frentes{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:18px}
+.fc{border:1.5px solid var(--border);border-radius:10px;padding:26px 22px;background:var(--canvas)}
+.fc.main{border-color:var(--red);border-width:2px}
+.fbadge{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--red);background:var(--red-bg);border-radius:4px;padding:3px 8px;margin-bottom:10px}
+.fc.sec .fbadge{color:var(--muted);background:var(--soft)}
+.fn{font-size:19px;font-weight:800;color:var(--ink);margin-bottom:8px}
+.fd{font-size:13px;color:var(--body);line-height:1.5}
+.nucleus{background:var(--soft);border-radius:8px;padding:14px 18px}
+.nuc-t{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.nuc-tags{display:flex;gap:6px;flex-wrap:wrap}
+.nt{font-size:11px;font-weight:600;color:var(--muted);background:var(--mid);border-radius:4px;padding:2px 8px}
+
+/* ── Planning banner ── */
+.plan-banner{background:var(--red);border-radius:8px;padding:12px 18px;margin-bottom:24px;display:flex;align-items:center;gap:12px}
+.plan-banner-txt{font-size:12px;font-weight:700;color:#fff;letter-spacing:.5px}
+
+/* ── Artefatos ── */
+.art-list{display:flex;flex-direction:column;gap:12px}
+.art{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;background:var(--soft);border-radius:8px;padding:14px 18px}
+.art-n{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.art-d{font-size:12px;color:var(--body)}
+.art-r{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:110px}
+.art-pct{font-size:20px;font-weight:800;color:var(--red);font-variant-numeric:tabular-nums}
+.art-pct.z{color:var(--muted)}
+.art-pct.g{color:#1a7f37}
+.art-bg{width:110px;height:5px;background:var(--mid);border-radius:3px;overflow:hidden}
+.art-fill{height:100%;background:var(--red);border-radius:3px;width:0;transition:width 1.1s cubic-bezier(.16,1,.3,1)}
+.art-fill.z{background:var(--border)}
+.art-fill.g{background:#1a7f37}
+
+/* ── Fases ── */
+.phases{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+.phase{border-radius:10px;padding:26px 20px;position:relative;overflow:hidden}
+.phase.cur{background:var(--red)}
+.phase.next{background:var(--soft);border:2px dashed var(--border)}
+.phase-n{font-size:52px;font-weight:900;line-height:1;position:absolute;top:10px;right:14px;opacity:.12}
+.phase-cur .phase-n{color:#fff}
+.phase-tag{font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.phase.cur .phase-tag{color:rgba(255,255,255,.65)}
+.phase.next .phase-tag{color:var(--muted)}
+.phase-title{font-size:16px;font-weight:800;line-height:1.2;margin-bottom:10px}
+.phase.cur .phase-title{color:#fff}
+.phase.next .phase-title{color:var(--ink)}
+.phase-items{list-style:none;font-size:13px;line-height:1.75}
+.phase.cur .phase-items{color:rgba(255,255,255,.8)}
+.phase.next .phase-items{color:var(--body)}
+
+/* ── Steps ── */
+.steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.step{display:flex;gap:12px;align-items:flex-start;background:var(--soft);border-radius:8px;padding:14px}
+.sn{font-size:12px;font-weight:800;color:var(--red);background:var(--red-bg);border-radius:6px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-variant-numeric:tabular-nums}
+.st{font-size:13px;color:var(--body);line-height:1.45;padding-top:3px}
+
+/* ── Stack ── */
+.stack{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.si-item{display:flex;gap:12px;align-items:flex-start;background:var(--soft);border-radius:8px;padding:14px}
+.sl{font-size:9.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--red);width:36px;flex-shrink:0;line-height:1.3;padding-top:2px}
+.sw{font-size:13px;font-weight:700;color:var(--ink);line-height:1.3;margin-bottom:2px}
+.sd{font-size:11.5px;color:var(--muted)}
+
+/* ── Profiles ── */
+.prof-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.prof{background:var(--soft);border-radius:10px;padding:22px 18px;border:1px solid var(--border)}
+.prof-ico{font-size:28px;margin-bottom:10px}
+.prof-n{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:2px}
+.prof-r{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--red);margin-bottom:10px}
+.prof-ul{list-style:none;font-size:12.5px;color:var(--body);line-height:1.75}
+.prof-ul li::before{content:"→ ";color:var(--red);font-weight:600}
+
+/* ── Closing ── */
+.s-close{background:var(--red)}
+.s-close .si{justify-content:center;padding-left:max(64px,env(safe-area-inset-left,0px));padding-right:max(64px,env(safe-area-inset-right,0px))}
+.cl-h{font-size:clamp(36px,5.5vw,68px);font-weight:900;color:#fff;line-height:1.08;text-wrap:balance;max-width:600px;margin-bottom:20px}
+.cl-sub{font-size:17px;font-weight:300;color:rgba(255,255,255,.72);max-width:480px;line-height:1.55;margin-bottom:36px}
+.cl-items{list-style:none;display:flex;flex-direction:column;gap:8px}
+.cl-item{font-size:14px;font-weight:600;color:rgba(255,255,255,.85)}
+.cl-item::before{content:"✓ ";color:rgba(255,255,255,.5)}
+
+/* ── Responsive ── */
+@media(max-width:600px){
+  .si{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));padding-block:36px 80px}
+  .s-cover .si,.s-close .si{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+  .phases{grid-template-columns:1fr}
+  .art{grid-template-columns:1fr}
+  .art-r{align-items:flex-start;flex-direction:row;align-items:center}
+}
+</style>
+
+<div class="pg"><div class="pg-fill" id="pgf"></div></div>
+
+<div class="deck" id="deck">
+
+  <!-- 1. COVER -->
+  <div class="slide s-cover active" data-slide="0">
+    <div class="si">
+      <div class="cv-eye">HITSS · Inova HitsTech</div>
+      <div class="cv-bar"></div>
+      <div class="cv-h">Aurora<br>Platform</div>
+      <div class="cv-sub">Plataforma corporativa de eficiência operacional que integra Design System, IA, Microsoft 365 e Power Platform para padronizar e escalar artefatos institucionais.</div>
+      <div class="cv-tags">
+        <span class="cv-tag">Aurora DS</span>
+        <span class="cv-tag">Presentation Builder</span>
+        <span class="cv-tag">MVP · 2026</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. PROBLEMA -->
+  <div class="slide" data-slide="1">
+    <div class="si">
+      <div class="eyebrow">Contexto</div>
+      <div class="h1">O problema que estamos resolvendo</div>
+      <div class="sub">A HITSS sofre com falta crítica de padronização em artefatos de alta frequência — materiais criados do zero ou adaptados de modelos desatualizados.</div>
+      <div class="rule"></div>
+      <div class="pg4">
+        <div class="pc">
+          <div class="pc-t">Inconsistência visual</div>
+          <div class="pc-b">Cada consultor aplica sua própria interpretação da identidade de marca, gerando versões divergentes.</div>
+        </div>
+        <div class="pc">
+          <div class="pc-t">Retrabalho constante</div>
+          <div class="pc-b">Materiais são criados do zero repetidamente, consumindo horas que poderiam ir para entregas de valor.</div>
+        </div>
+        <div class="pc">
+          <div class="pc-t">Dificuldade de localizar referências</div>
+          <div class="pc-b">Cases, serviços, especialistas e templates ficam em repositórios dispersos e desatualizados.</div>
+        </div>
+        <div class="pc">
+          <div class="pc-t">Onboarding lento</div>
+          <div class="pc-b">Novos consultores levam semanas para aprender qual template usar e como aplicar as diretrizes corretas.</div>
+        </div>
+        <div class="pc">
+          <div class="pc-t">Governança ausente</div>
+          <div class="pc-b">Sem controle de versão, aprovação ou rastreabilidade — materiais não aprovados chegam a clientes.</div>
+        </div>
+        <div class="pc">
+          <div class="pc-t">Baixa escalabilidade</div>
+          <div class="pc-b">O modelo atual depende de especialistas individuais; não escala à medida que a empresa cresce.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. VISÃO -->
+  <div class="slide" data-slide="2">
+    <div class="si">
+      <div class="eyebrow">Solução</div>
+      <div class="h1">Aurora — a plataforma de eficiência operacional</div>
+      <div class="rule"></div>
+      <div class="vis-q">O Aurora transforma conhecimento corporativo, assets, templates e automações em uma <strong>capacidade operacional reutilizável, governada e escalável</strong> — entregando artefatos prontos para uso com padronização, rastreabilidade e IA.</div>
+      <div class="pillars">
+        <div class="pill"><div class="pill-i">🎨</div><div class="pill-l">Design System</div></div>
+        <div class="pill"><div class="pill-i">🤖</div><div class="pill-l">IA Governada</div></div>
+        <div class="pill"><div class="pill-i">📁</div><div class="pill-l">Microsoft 365</div></div>
+        <div class="pill"><div class="pill-i">⚡</div><div class="pill-l">Power Platform</div></div>
+        <div class="pill"><div class="pill-i">🔒</div><div class="pill-l">Governança</div></div>
+        <div class="pill"><div class="pill-i">📊</div><div class="pill-l">Rastreabilidade</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. FRENTES -->
+  <div class="slide" data-slide="3">
+    <div class="si">
+      <div class="eyebrow">Frentes de Negócio</div>
+      <div class="h1">Três frentes sobre um núcleo comum</div>
+      <div class="sub">Cada frente entrega valor independente, mas todas reutilizam a mesma camada de identidade, dados, assets, automações e IA.</div>
+      <div class="rule"></div>
+      <div class="frentes">
+        <div class="fc main">
+          <div class="fbadge">Atual · MVP</div>
+          <div class="fn">Aurora DS</div>
+          <div class="fd">Governa e escala artefatos internos — bibliotecas, assets, templates e componentes. Self-service controlado com consistência de marca e rastreabilidade total.</div>
+        </div>
+        <div class="fc sec">
+          <div class="fbadge">Próximo</div>
+          <div class="fn">Unificação de Portfólio</div>
+          <div class="fd">Fonte oficial de ofertas, capacidades e cases. Busca, comparação, visão 360°, proposta estruturada e consulta assistida por IA para reduzir dependência de especialistas.</div>
+        </div>
+        <div class="fc sec">
+          <div class="fbadge">Futuro</div>
+          <div class="fn">Claro DS</div>
+          <div class="fd">Reutiliza o núcleo Aurora e permite configuração white-label por cliente ou marca. Implantável, operável e modular — sem duplicar a plataforma-base.</div>
+        </div>
+      </div>
+      <div class="nucleus">
+        <div class="nuc-t">Núcleo Compartilhado</div>
+        <div class="nuc-tags">
+          <span class="nt">Identidade &amp; Auth</span>
+          <span class="nt">Dados &amp; Metadados</span>
+          <span class="nt">Assets &amp; Mídias</span>
+          <span class="nt">Templates</span>
+          <span class="nt">Taxonomia</span>
+          <span class="nt">Automações</span>
+          <span class="nt">IA &amp; Agentes</span>
+          <span class="nt">APIs</span>
+          <span class="nt">Governança</span>
+          <span class="nt">Observabilidade</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. PLANEJAMENTO: ARTEFATOS -->
+  <div class="slide" data-slide="4" id="slide-artifacts">
+    <div class="si">
+      <div class="eyebrow">Planejamento</div>
+      <div class="h1">Primeira onda — 6 artefatos prioritários</div>
+      <div class="sub">O Presentation Builder é a primeira entrega, mas a plataforma suporta toda esta onda de artefatos essenciais da HITSS.</div>
+      <div class="rule"></div>
+      <div class="plan-banner">
+        <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" stroke="rgba(255,255,255,.6)" stroke-width="1.5"/><path d="M8 4.5v4l2.5 1.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <div class="plan-banner-txt">Todos os artefatos serão suportados pela mesma plataforma. O Presentation Builder é a entrega do MVP.</div>
+      </div>
+      <div class="art-list" id="artlist">
+        <div class="art" data-pct="60" data-cls="g">
+          <div><div class="art-n">Proposta Técnica e Comercial</div><div class="art-d">Template PPT unificado + biblioteca de cases</div></div>
+          <div class="art-r"><div class="art-pct g" id="ap0">60%</div><div class="art-bg"><div class="art-fill g" id="af0"></div></div></div>
+        </div>
+        <div class="art" data-pct="50">
+          <div><div class="art-n">Status Report</div><div class="art-d">Template para cliente, executivo e cadência</div></div>
+          <div class="art-r"><div class="art-pct" id="ap1">50%</div><div class="art-bg"><div class="art-fill" id="af1"></div></div></div>
+        </div>
+        <div class="art" data-pct="40">
+          <div><div class="art-n">Ata de Reuniões</div><div class="art-d">Template e fluxo de aprovação</div></div>
+          <div class="art-r"><div class="art-pct" id="ap2">40%</div><div class="art-bg"><div class="art-fill" id="af2"></div></div></div>
+        </div>
+        <div class="art" data-pct="40">
+          <div><div class="art-n">Relatório Final</div><div class="art-d">Template e checklist de qualidade</div></div>
+          <div class="art-r"><div class="art-pct" id="ap3">40%</div><div class="art-bg"><div class="art-fill" id="af3"></div></div></div>
+        </div>
+        <div class="art" data-pct="0" data-cls="z">
+          <div><div class="art-n">Briefing</div><div class="art-d">Template Word / formulário + guia de preenchimento</div></div>
+          <div class="art-r"><div class="art-pct z" id="ap4">0%</div><div class="art-bg"><div class="art-fill z" id="af4"></div></div></div>
+        </div>
+        <div class="art" data-pct="0" data-cls="z">
+          <div><div class="art-n">Aceite Comercial</div><div class="art-d">Documento formal + workflow de aprovação</div></div>
+          <div class="art-r"><div class="art-pct z" id="ap5">0%</div><div class="art-bg"><div class="art-fill z" id="af5"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. PLANEJAMENTO: FASES -->
+  <div class="slide" data-slide="5">
+    <div class="si">
+      <div class="eyebrow">Planejamento</div>
+      <div class="h1">Fases de entrega da plataforma</div>
+      <div class="sub">Evolução progressiva: o MVP entrega o Presentation Builder hoje; as fases seguintes expandem o alcance sem reescrever a base.</div>
+      <div class="rule"></div>
+      <div class="phases">
+        <div class="phase cur">
+          <div class="phase-n">1</div>
+          <div class="phase-tag">Em andamento · MVP</div>
+          <div class="phase-title">Aurora Presentation Builder</div>
+          <ul class="phase-items">
+            <li>Design tokens Aurora no Tailwind</li>
+            <li>Shell React + Entra ID</li>
+            <li>Dashboard e formulário contextual</li>
+            <li>Geração de PPTX com IA governada</li>
+            <li>Fluxo de aprovação via Power Automate</li>
+            <li>RAG sobre fontes aprovadas</li>
+          </ul>
+        </div>
+        <div class="phase next">
+          <div class="phase-n">2</div>
+          <div class="phase-tag">Próxima fase</div>
+          <div class="phase-title">Unificação de Portfólio</div>
+          <ul class="phase-items">
+            <li>Catálogo de serviços e capacidades</li>
+            <li>Biblioteca de cases com busca semântica</li>
+            <li>Visão 360° de especialistas</li>
+            <li>Geração de proposta assistida por IA</li>
+            <li>Cross-selling contextual</li>
+          </ul>
+        </div>
+        <div class="phase next">
+          <div class="phase-n">3</div>
+          <div class="phase-tag">Fase futura</div>
+          <div class="phase-title">Claro DS — White-label</div>
+          <ul class="phase-items">
+            <li>Configuração de branding por cliente</li>
+            <li>Módulos de identidade visual isolados</li>
+            <li>Deploy independente por marca</li>
+            <li>Reutilização do núcleo Aurora</li>
+            <li>Sem duplicar a plataforma-base</li>
+          </ul>
+        </div>
+      </div>
+      <div class="nucleus">
+        <div class="nuc-t">Princípio arquitetural</div>
+        <div style="font-size:13px;color:var(--body);line-height:1.5;margin-top:6px">A IA pode propor e montar conteúdo, mas <strong style="color:var(--ink)">não é a autoridade</strong> sobre fontes, permissões, identidade visual ou publicação. Essas autoridades pertencem ao repositório corporativo, à camada de segurança, ao Aurora DS e ao fluxo de governança.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. PLANEJAMENTO: PRÓXIMOS PASSOS -->
+  <div class="slide" data-slide="6">
+    <div class="si">
+      <div class="eyebrow">Planejamento</div>
+      <div class="h1">10 próximos passos técnicos</div>
+      <div class="sub">Sequência validada para sair do zero ao primeiro fluxo de geração real — em ordem de dependência técnica.</div>
+      <div class="rule"></div>
+      <div class="steps">
+        <div class="step"><div class="sn">01</div><div class="st">Validar disponibilidade e licenciamento de Azure AI Search, Azure OpenAI, Dataverse e Copilot Studio.</div></div>
+        <div class="step"><div class="sn">02</div><div class="st">Confirmar bibliotecas SharePoint e taxonomia oficial de metadados da HITSS.</div></div>
+        <div class="step"><div class="sn">03</div><div class="st">Criar contrato OpenAPI da Aurora API com todos os endpoints iniciais documentados.</div></div>
+        <div class="step"><div class="sn">04</div><div class="st">Criar design tokens Aurora no TailwindCSS: cores, tipografia, espaçamento, radius e estados.</div></div>
+        <div class="step"><div class="sn">05</div><div class="st">Criar shell React com autenticação Entra ID e navegação lateral retrátil.</div></div>
+        <div class="step"><div class="sn">06</div><div class="st">Criar modelo Dataverse e bibliotecas SharePoint (Templates, Cases, Assets, Diretrizes, Materiais).</div></div>
+        <div class="step"><div class="sn">07</div><div class="st">Implementar dashboard e formulário de criação com dados mockados.</div></div>
+        <div class="step"><div class="sn">08</div><div class="st">Implementar primeiro fluxo de geração com worker de PPTX simulado.</div></div>
+        <div class="step"><div class="sn">09</div><div class="st">Integrar aprovação via Power Automate com notificações no Teams e e-mail.</div></div>
+        <div class="step"><div class="sn">10</div><div class="st">Implementar RAG com evidências, filtros de segurança e controle de permissões.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. STACK -->
+  <div class="slide" data-slide="7">
+    <div class="si">
+      <div class="eyebrow">Tecnologia</div>
+      <div class="h1">Stack tecnológico</div>
+      <div class="sub">Soluções Microsoft-first com React no frontend — modular monolith no MVP, preparado para extração de serviços quando necessário.</div>
+      <div class="rule"></div>
+      <div class="stack">
+        <div class="si-item"><div class="sl">Front</div><div><div class="sw">React + TypeScript</div><div class="sd">shadcn/ui · Tailwind · MSAL</div></div></div>
+        <div class="si-item"><div class="sl">BFF</div><div><div class="sw">.NET 8 API</div><div class="sd">Contratos, auth, composição</div></div></div>
+        <div class="si-item"><div class="sl">Auth</div><div><div class="sw">Microsoft Entra ID</div><div class="sd">OAuth 2.0 · OIDC · grupos</div></div></div>
+        <div class="si-item"><div class="sl">DB</div><div><div class="sw">Dataverse</div><div class="sd">Jobs, aprovações, auditoria</div></div></div>
+        <div class="si-item"><div class="sl">Docs</div><div><div class="sw">SharePoint Online</div><div class="sd">Templates, cases, assets</div></div></div>
+        <div class="si-item"><div class="sl">Search</div><div><div class="sw">Azure AI Search</div><div class="sd">RAG híbrido com filtros</div></div></div>
+        <div class="si-item"><div class="sl">IA</div><div><div class="sw">Azure OpenAI</div><div class="sd">Geração estruturada (JSON)</div></div></div>
+        <div class="si-item"><div class="sl">Agent</div><div><div class="sw">Copilot Studio</div><div class="sd">Conversação + ações custom</div></div></div>
+        <div class="si-item"><div class="sl">Auto</div><div><div class="sw">Power Automate</div><div class="sd">Aprovações · notificações</div></div></div>
+        <div class="si-item"><div class="sl">PPTX</div><div><div class="sw">Worker Assíncrono</div><div class="sd">Open XML SDK / PptxGenJS</div></div></div>
+        <div class="si-item"><div class="sl">Graph</div><div><div class="sw">Microsoft Graph</div><div class="sd">M365, perfil, permissões</div></div></div>
+        <div class="si-item"><div class="sl">Obs</div><div><div class="sw">App Insights</div><div class="sd">Logs, métricas, traces</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. PERFIS -->
+  <div class="slide" data-slide="8">
+    <div class="si">
+      <div class="eyebrow">Usuários</div>
+      <div class="h1">Quem usa a plataforma</div>
+      <div class="sub">Quatro perfis com papéis distintos — da criação ao controle, garantindo que cada artefato seja produzido, revisado e publicado com rastreabilidade.</div>
+      <div class="rule"></div>
+      <div class="prof-grid">
+        <div class="prof">
+          <div class="prof-ico">✍️</div>
+          <div class="prof-n">Criador</div>
+          <div class="prof-r">Consultor · Comercial</div>
+          <ul class="prof-ul">
+            <li>Cria e configura novos materiais</li>
+            <li>Envia arquivos de referência</li>
+            <li>Acompanha geração em tempo real</li>
+            <li>Revisa, edita e exporta</li>
+            <li>Envia para aprovação</li>
+          </ul>
+        </div>
+        <div class="prof">
+          <div class="prof-ico">🔍</div>
+          <div class="prof-n">Revisor / Aprovador</div>
+          <div class="prof-r">Líder · Gerente</div>
+          <ul class="prof-ul">
+            <li>Consulta fila de pendências</li>
+            <li>Visualiza conteúdo e fontes</li>
+            <li>Aprova, ajusta ou rejeita</li>
+            <li>Registra comentários auditáveis</li>
+          </ul>
+        </div>
+        <div class="prof">
+          <div class="prof-ico">📚</div>
+          <div class="prof-n">Curador</div>
+          <div class="prof-r">Governança · Design</div>
+          <ul class="prof-ul">
+            <li>Gerencia templates e casos</li>
+            <li>Mantém a biblioteca oficial</li>
+            <li>Define taxonomia e regras</li>
+            <li>Aprova ou despublica conteúdos</li>
+          </ul>
+        </div>
+        <div class="prof">
+          <div class="prof-ico">⚙️</div>
+          <div class="prof-n">Administrador</div>
+          <div class="prof-r">TI · Plataforma</div>
+          <ul class="prof-ul">
+            <li>Gerencia usuários e permissões</li>
+            <li>Configura integrações e conectores</li>
+            <li>Define parâmetros de IA</li>
+            <li>Monitora logs e indicadores</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. CLOSING -->
+  <div class="slide s-close" data-slide="9">
+    <div class="si">
+      <div class="cv-eye" style="color:rgba(255,255,255,.6)">HITSS · Aurora Platform</div>
+      <div class="cv-bar" style="background:rgba(255,255,255,.3);margin-bottom:28px"></div>
+      <div class="cl-h">Próximos passos para começar</div>
+      <div class="cl-sub">A plataforma está especificada, os contratos definidos e o planejamento validado. O que falta é iniciar.</div>
+      <ul class="cl-items">
+        <li>Validar licenciamento Azure + Dataverse + Copilot Studio</li>
+        <li>Definir squad inicial e responsável técnico</li>
+        <li>Criar repositório e ambientes de dev/hom/prod</li>
+        <li>Estabelecer cadência de revisão quinzenal</li>
+        <li>Lançar MVP do Presentation Builder em sprint 1</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+  <button class="nb" id="prev" title="Anterior">‹</button>
+  <div class="dots" id="dots"></div>
+  <span class="nc" id="counter">1 / 10</span>
+  <button class="nb" id="next" title="Próximo">›</button>
+</div>
+
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  const pgf = document.getElementById('pgf');
+  const counter = document.getElementById('counter');
+  const dotsEl = document.getElementById('dots');
+  const prev = document.getElementById('prev');
+  const next = document.getElementById('next');
+  let cur = 0;
+  let artAnimated = false;
+
+  // Build dots
+  for(let i=0;i<total;i++){
+    const d = document.createElement('button');
+    d.className = 'dot' + (i===0?' on':'');
+    d.setAttribute('aria-label','Slide '+(i+1));
+    d.addEventListener('click',()=>go(i));
+    dotsEl.appendChild(d);
+  }
+
+  function animateArtifacts(){
+    if(artAnimated) return;
+    artAnimated = true;
+    const pcts = [60,50,40,40,0,0];
+    pcts.forEach((p,i)=>{
+      const fill = document.getElementById('af'+i);
+      if(fill) setTimeout(()=>{ fill.style.width = p+'%'; }, 100 + i*80);
+    });
+  }
+
+  function go(n){
+    if(n===cur) return;
+    const old = cur;
+    cur = Math.max(0,Math.min(n,total-1));
+    slides[old].classList.remove('active');
+    slides[old].classList.add('out');
+    setTimeout(()=>slides[old].classList.remove('out'),320);
+    slides[cur].classList.add('active');
+    pgf.style.width = ((cur+1)/total*100)+'%';
+    counter.textContent = (cur+1)+' / '+total;
+    dotsEl.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i===cur));
+    prev.disabled = cur===0;
+    next.disabled = cur===total-1;
+    if(cur===4) animateArtifacts();
+  }
+
+  prev.addEventListener('click',()=>go(cur-1));
+  next.addEventListener('click',()=>go(cur+1));
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key==='ArrowDown') go(cur+1);
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp') go(cur-1);
+  });
+
+  // Touch swipe
+  let tx=0;
+  document.addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
+  document.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-tx;
+    if(Math.abs(dx)>48){dx<0?go(cur+1):go(cur-1);}
+  },{passive:true});
+
+  // Init
+  pgf.style.width = (1/total*100)+'%';
+  prev.disabled = true;
+})();
+</script>
